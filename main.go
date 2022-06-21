@@ -41,5 +41,5 @@ func main() {
 
 	mux.HandleFunc("/", viewHandler)
 	mux.Handle("/public/", public())
-	log.Fatal(http.ListenAndServe(":80", mux))
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }
