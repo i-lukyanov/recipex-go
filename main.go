@@ -29,6 +29,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Path[len("/"):]
 	p, _ := LoadPage(title)
 
+	w.Header().Set("Content-Type", "application/json")
+
 	fmt.Fprintf(w, "%s", p.Body)
 }
 
