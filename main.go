@@ -1,37 +1,26 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	mux2 "github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"os"
 )
 
-type Page struct {
-	Title string
-	Body  []byte
+func homeLink(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Home of oats=)")
 }
 
-func LoadPage(title string) (*Page, error) {
-	filename := title + ".json"
-	body, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
+func getAll(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if (*r).Method == "OPTIONS" {
+		return
 	}
 
-	return &Page{
-		Title: title,
-		Body:  body,
-	}, nil
-}
-
-func viewHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/"):]
-	p, _ := LoadPage(title)
-
-	w.Header().Set("Content-Type", "application/json")
-
-	fmt.Fprintf(w, "%s", p.Body)
+	json.NewEncoder(w).Encode(Recipes)
 }
 
 func public() http.Handler {
@@ -39,9 +28,11 @@ func public() http.Handler {
 }
 
 func main() {
-	mux := http.NewServeMux()
+	router := mux2.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", homeLink)
+	router.HandleFunc("/recipes", getAll)
+	router.PathPrefix("/public/").Handler(public())
+	//router.Handle("/public/", public())
 
-	mux.HandleFunc("/", viewHandler)
-	mux.Handle("/public/", public())
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
